@@ -1,0 +1,8 @@
+- Cons.
+- Tests?
+- Quasiquote.
+- Reader macros. We need to expose a function (read).
+  (Probably a better idea is to re-write the entire thing, and do this in the
+   parser. As we parse we read and eval at the same time)
+- Macros.
+- Error handling is implemented, but it could be better.
