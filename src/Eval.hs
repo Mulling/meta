@@ -53,29 +53,32 @@ type Context = M.Map String Mexpr
 
 initCtx :: Context
 initCtx = M.fromList
-  [("+",      Mitr $ mmath (+) "+")
-  ,("-",      Mitr $ mmath (-) "-")
-  ,("*",      Mitr $ mmath (*) "*")
-  ,("/",      Mitr mdiv) -- NOTE: (/) is not a method of Num :(
-  ,("and",    Mitr mand)
-  ,("or",     Mitr mor)
-  ,("not",    Mitr mnot)
-  ,("set",    Mspc mset)
-  ,("quote",  Mspc mquote)
-  ,("lambda", Mspc mlambda)
-  ,("eq?",    Mspc meq)
-  ,("if",     Mspc mif)
-  ,("when",   Mspc mwhen)
-  ,("<",      Mitr $ mnc (<) "<")
-  ,(">",      Mitr $ mnc (>) ">")
-  ,("==",     Mitr $ mnc (==) "==")
-  ,("<=",     Mitr $ mnc (<=) "<=")
-  ,(">=",     Mitr $ mnc (>=) ">=")
-  ,("car",    Mspc mcar)
-  ,("cdr",    Mspc mcdr)
-  ,("eval",   Mitr meval)
-  ,("apply",  Mitr mapply)
-  ,("cons",   Mspc mcons)
+  [("+",       Mitr $ mmath (+) "+")
+  ,("-",       Mitr $ mmath (-) "-")
+  ,("*",       Mitr $ mmath (*) "*")
+  ,("/",       Mitr mdiv) -- NOTE: (/) is not a method of Num :(
+  ,("and",     Mspc mand)
+  ,("or",      Mspc mor)
+  ,("not",     Mspc mnot)
+  ,("set",     Mspc mset)
+  ,("quote",   Mspc mquote)
+  ,("lambda",  Mspc mlambda)
+  ,("eq?",     Mspc meq)
+  ,("list?",   Mspc mlist)
+  ,("symbol?", Mspc msymbol)
+  ,("string?", Mspc mstring)
+  ,("if",      Mspc mif)
+  ,("when",    Mspc mwhen)
+  ,("<",       Mitr $ mnc (<) "<")
+  ,(">",       Mitr $ mnc (>) ">")
+  ,("==",      Mitr $ mnc (==) "==")
+  ,("<=",      Mitr $ mnc (<=) "<=")
+  ,(">=",      Mitr $ mnc (>=) ">=")
+  ,("car",     Mspc mcar)
+  ,("cdr",     Mspc mcdr)
+  ,("eval",    Mitr meval)
+  ,("apply",   Mitr mapply)
+  ,("cons",    Mspc mcons)
   ]
 
 -- NOTE: functions that start with m (meta) are either special forms or internal lambdas
@@ -139,6 +142,33 @@ mlambda _ = errg "lambda requires a list of arguments"
 meq :: [Mexpr] -> Mres
 meq as@[_, _] = mapM eval as >>= \ras -> return $ if head ras == last ras then Mnum 1 else Mnil
 meq _         = erra "eq"
+
+mlist :: [Mexpr] -> Mres
+mlist a =
+  case a of
+    [l] -> eval l >>= mlist'
+    _   -> erra "list?"
+  where
+    mlist' (Mlst _) = return $ Mnum 1
+    mlist' _        = return Mnil
+
+msymbol :: [Mexpr] -> Mres
+msymbol a =
+  case a of
+    [s] -> eval s >>= msymbol'
+    _   -> erra "symbol?"
+  where
+    msymbol' (Msym _) = return $ Mnum 1
+    msymbol' _        = return Mnil
+
+mstring :: [Mexpr] -> Mres
+mstring a =
+  case a of
+    [s] -> eval s >>= mstring'
+    _   -> erra "string?"
+  where
+    mstring' (Mstr _) = return $ Mnum 1
+    mstring' _        = return Mnil
 
 mif :: [Mexpr] -> Mres
 mif a =

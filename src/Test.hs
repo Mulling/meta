@@ -22,6 +22,7 @@ tests =
   [("(- 3 3 3)", "-3")
   ,("(and (set test 1) (+ test 1))", "2")
   ,("(or (set test 1) (+ test 1))", "1")
+  ,("(or (and (set test 1) nil) (and (or 3 (set test 2)) test))", "1")
   ,("(cons 3 nil)", "(3)")
   ,("(cons 3 ())", "(3)")
   ,("(cons 3 3)", "(3 3)")
@@ -33,4 +34,7 @@ tests =
   ,("(cdr (quote (1 2 3)))", "(2 3)")
   ,("(cdr (cdr (quote (1 2 3))))", "(3)")
   ,("(cdr (cdr (cdr (quote (1 2 3)))))", "nil")
+  ,("(car \"hi\")", "h")
+  ,("(cdr \"hi\")", "i")
+  ,("(cdr (cdr \"hi\"))", "nil")
   ]

@@ -13,7 +13,8 @@ release: all
 runtest: GHCTARGET = Test
 runtest: GHCOUT = test
 runtest: all
-	./test
+	@echo " :: Running Tests"
+	@./test
 
 profile: GHCFLAGS += -O3 -prof -fprof-auto -rtsopts
 profile: all

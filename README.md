@@ -35,35 +35,35 @@ lines starting with `:.` are output. Error handling is very primitive and all st
  :. 1
 
 ;; set is in reality setq, since it does not eval the first argument
-(set fib (lambda (x)
-           (if (== x 0)
-               0
-             (if (or (== 1 x) (== 2 x))
-                 1
-               (+ (fib (- x 1)) (fib (- x 2)))))))
-
+.: (set fib (lambda (x)
+              (if (== x 0)
+                  0
+                (if (or (== 1 x) (== 2 x))
+                    1
+                  (+ (fib (- x 1)) (fib (- x 2)))))))
+ 
 ;; set will return the expression, so you can bind a symbol to a lambda and call it at the same time
-(set fastfib (lambda (x)
-               ((set fib (lambda (old new n)
-                           (if (== 0 n)
-                               old
-                             (fib new (+ old new) (- n 1)))))
-                0 1 x)))
+.: (set fastfib (lambda (x)
+                  ((set fib (lambda (old new n)
+                              (if (== 0 n)
+                                  old
+                                (fib new (+ old new) (- n 1)))))
+                   0 1 x)))
 
 ;; simple map function
-(set map (lambda (f l)
-           (if (eq? nil l)
-               ()
-             (cons (f (car l)) (map f (cdr l))))))
+.: (set map (lambda (f l)
+              (if (eq? nil l)
+                  ()
+                (cons (f (car l)) (map f (cdr l))))))
 
 ;; in the REPL
 .: (map (lambda (x) (+ 1 x)) (cons 3 (cons 4 5)))
  :. (4 5 6)
 
 ;; eval will act as do/progn
-(if end-of-the-world?
-    (eval
-     (go-to-bunkers)
-     (lunch-ze-missiles))
-  (do-nothing))
+.: (if end-of-the-world?
+       (eval
+        (go-to-bunkers)
+        (lunch-ze-missiles))
+     (do-nothing))
 ```
