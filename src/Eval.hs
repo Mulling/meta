@@ -194,9 +194,11 @@ mcar a =
     [l] -> eval l >>= mcar'
     _   -> erra "car"
   where
-    mcar' (Mlst (h:_)) = return h
-    mcar' (Mstr (h:_)) = return $ Mstr [h]
-    mcar' _            = errg "invalid type to car, must be a list or string"
+    mcar' a' =
+      case a' of
+        Mlst (h:_) -> return h
+        Mstr (h:_) -> return $ Mstr [h]
+        _          -> errg "invalid type to car, must be a list or string"
 
 mcdr :: [Mexpr] -> Mres
 mcdr a =
@@ -204,11 +206,13 @@ mcdr a =
     [l] -> eval l >>= mcdr'
     _   -> erra "cdr"
   where
-    mcdr' (Mlst (_:[])) = return Mnil
-    mcdr' (Mlst (_:tl)) = return $ Mlst tl
-    mcdr' (Mstr (_:[])) = return Mnil
-    mcdr' (Mstr (_:tl)) = return $ Mstr tl
-    mcdr' _             = errg "invalid type to cdr, must be a list or string"
+    mcdr' a' =
+      case a' of
+        Mlst (_:[]) -> return Mnil
+        Mlst (_:tl) -> return $ Mlst tl
+        Mstr (_:[]) -> return Mnil
+        Mstr (_:tl) -> return $ Mstr tl
+        _           -> errg "invalid type to cdr, must be a list or string"
 
 -- eval will act as do/progn
 meval :: [Mexpr] -> Mres
@@ -221,9 +225,9 @@ mapply [fn@(Mlam _ _), a]      = eval $ Mlst (fn:[a])
 mapply _                       = erra "apply"
 
 mcons :: [Mexpr] -> Mres
-mcons [h, tl] = eval h >>= (\rh -> eval tl >>= (\rtl -> return $ mcons' rh rtl))
+mcons [h, tl] = eval h >>= (\rh -> eval tl >>= return . mcons' rh rtl)
   where
-    mcons' rh' Mnil        = Mlst $ [rh']
+    mcons' rh' Mnil        = Mlst [rh']
     mcons' rh' (Mlst rtl') = Mlst $ rh':rtl'
     mcons' rh' rtl'        = Mlst $ rh':[rtl']
 mcons _ = erra "cons"

@@ -3,21 +3,19 @@ module Main where
 import Eval
 import qualified Reader               as R
 
-import System.IO
 import qualified Control.Monad.State  as S
 import qualified Control.Monad.Except as E
-import qualified Data.Map             as M
 
 -- simple test """FRAMEWORK"""
 
 main :: IO ()
 main = mapM_ (\(e, a) -> E.runExceptT (S.evalStateT (R.read e >>= eval >>= pure . show) initCtx) >>= putStrLn . res e a) tests
   where
-    res e' a' (Right r) = 
-      if r == a' 
-        then " :: OK  " <> e' 
+    res e' a' (Right r) =
+      if r == a'
+        then " :: OK  " <> e'
         else " :: ERR expected " <> a' <> " got " <> r
-    res e' a' (Left er) = " :: ERR evaluation failed with: " <> er
+    res _ _ (Left er) = " :: ERR evaluation failed with: " <> er
 
 tests :: [(String, String)]
 tests =
@@ -36,5 +34,3 @@ tests =
   ,("(cdr (cdr (quote (1 2 3))))", "(3)")
   ,("(cdr (cdr (cdr (quote (1 2 3)))))", "nil")
   ]
-
-

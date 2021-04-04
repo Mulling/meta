@@ -1,6 +1,6 @@
 GHCFLAGS := -Wall
 GHCTARGET := Main
-GHCOUT := test
+GHCOUT := meta
 
 all:
 	ghc --make $(GHCTARGET) -o $(GHCOUT) -outputdir ../dist/ $(GHCFLAGS)
