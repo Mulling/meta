@@ -210,7 +210,7 @@ mcdr a =
     mcdr' (Mstr (_:tl)) = return $ Mstr tl
     mcdr' _             = errg "invalid type to cdr, must be a list or string"
 
--- eval will act as do
+-- eval will act as do/progn
 meval :: [Mexpr] -> Mres
 meval [] = erra "eval"
 meval es = mapM eval es >>= return . last

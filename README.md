@@ -60,7 +60,7 @@ lines starting with `:.` are output. Error handling is very primitive and all st
 .: (map (lambda (x) (+ 1 x)) (cons 3 (cons 4 5)))
  :. (4 5 6)
 
-;; eval will act as do
+;; eval will act as do/progn
 (if end-of-the-world?
     (eval
      (go-to-bunkers)

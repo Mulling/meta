@@ -1,3 +1,4 @@
 dist/
 src/meta
 src/*.prof
+src/test

@@ -1,5 +1,3 @@
-- Cons.
-- Tests?
 - Quasiquote.
 - Reader macros. We need to expose a function (read).
   (Probably a better idea is to re-write the entire thing, and do this in the
