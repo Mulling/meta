@@ -225,7 +225,7 @@ mapply [fn@(Mlam _ _), a]      = eval $ Mlst (fn:[a])
 mapply _                       = erra "apply"
 
 mcons :: [Mexpr] -> Mres
-mcons [h, tl] = eval h >>= (\rh -> eval tl >>= return . mcons' rh rtl)
+mcons [h, tl] = eval h >>= (\rh -> eval tl >>= return . mcons' rh)
   where
     mcons' rh' Mnil        = Mlst [rh']
     mcons' rh' (Mlst rtl') = Mlst $ rh':rtl'
