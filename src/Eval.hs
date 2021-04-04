@@ -43,7 +43,7 @@ instance Show Mexpr where
       Mlst []       -> "()"
       Mlst (x:xs)   -> "(" <> foldl f (show x) xs <> ")" where f xs' e = xs' <> " " <> show e
       Mlam _ []     -> "(lambda () ...)"
-      Mlam _ (x:xs) -> "(lambda (" <> foldl ((<>) . (<> " ")) x xs <> ") ..)"
+      Mlam _ (x:xs) -> "(lambda (" <> foldl ((<>) . (<> " ")) x xs <> ") ...)"
       Mitr _        -> "<built-in-lambda>"
       Mspc _        -> "<special-form>"
 
@@ -75,6 +75,7 @@ initCtx = M.fromList
   ,("cdr",    Mspc mcdr)
   ,("eval",   Mitr meval)
   ,("apply",  Mitr mapply)
+  ,("cons",   Mspc mcons)
   ]
 
 -- NOTE: functions that start with m (meta) are either special forms or internal lambdas
@@ -115,33 +116,33 @@ mdiv _ = erra "div"
 -- NOTE: this is not really set but setq since we don't eval the first parameter
 -- maybe we should? or rename it to setq
 mset :: [Mexpr] -> Mres
-mset exprs =
-  case exprs of
-    [Msym sym, expr] -> eval expr >>= (\rs -> bind (sym, rs) >> return rs)
-    _                -> erra "set"
+mset a =
+  case a of
+    [Msym s, e] -> eval e >>= (\re -> bind (s, re) >> return re)
+    _           -> erra "set"
 
 mquote :: [Mexpr] -> Mres
-mquote [expr] = return expr
-mquote _      = erra "quote"
+mquote [a] = return a
+mquote _   = erra "quote"
 
 mlambda :: [Mexpr] -> Mres
-mlambda ((Mlst as): exprs) =
+mlambda ((Mlst as): body) =
   case go [] as of
-    Just args -> return $ Mlam exprs args
+    Just args -> return $ Mlam body args
     Nothing   -> errg "non-symbol in lambda argument list"
   where
-    go xs []            = Just $ reverse xs
-    go xs ((Msym s):ys) = go (s:xs) ys
-    go _  _             = Nothing
+    go args []             = Just $ reverse args
+    go args ((Msym a):as') = go (a:args) as'
+    go _  _                = Nothing
 mlambda _ = errg "lambda requires a list of arguments"
 
 meq :: [Mexpr] -> Mres
-meq exprs@[_, _] = mapM eval exprs >>= \rs -> return $ if head rs == last rs then Mnum 1 else Mnil
-meq _            = erra "eq"
+meq as@[_, _] = mapM eval as >>= \ras -> return $ if head ras == last ras then Mnum 1 else Mnil
+meq _         = erra "eq"
 
 mif :: [Mexpr] -> Mres
-mif exprs =
-  case exprs of
+mif a =
+  case a of
     [c, i, e] -> eval c >>= mif' i e
     _         -> erra "if"
   where
@@ -149,8 +150,8 @@ mif exprs =
     mif' i _ _    = eval i
 
 mwhen :: [Mexpr] -> Mres
-mwhen exprs =
-  case exprs of
+mwhen a =
+  case a of
     [c, w] -> eval c >>= mwhen' w
     _      -> erra "when"
   where
@@ -159,7 +160,7 @@ mwhen exprs =
 
 -- meta numeric comparison
 mnc :: (forall a. Ord a => a -> a -> Bool) -> String -> ([Mexpr] -> Mres)
-mnc f _ xs@[_, _] = mapM eval xs >>= \rs -> return (head rs ^==^ last rs)
+mnc f _ as@[_, _] = mapM eval as >>= \ras -> return (head ras ^==^ last ras)
   where
     toexpr True  = Mnum 1
     toexpr False = Mnil
@@ -179,42 +180,53 @@ mor :: [Mexpr] -> Mres
 mor = S.foldM (\a expr -> if a == Mnil then eval expr else return a) Mnil
 
 mnot :: [Mexpr] -> Mres
-mnot exprs =
-  case exprs of
-    [expr] -> eval expr >>= mnot'
-    _      -> erra "not"
+mnot a =
+  case a of
+    [l] -> eval l >>= mnot'
+    _   -> erra "not"
   where
     mnot' Mnil = return $ Mnum 1
     mnot' _    = return Mnil
 
 mcar :: [Mexpr] -> Mres
-mcar exprs =
-  case exprs of
-    [ex] -> eval ex >>= f
-    _    -> erra "car"
+mcar a =
+  case a of
+    [l] -> eval l >>= mcar'
+    _   -> erra "car"
   where
-    f (Mlst (x:_)) = return x
-    f (Mstr (x:_)) = return $ Mstr [x]
-    f _            = errg "invalid type to car, must be a list or string"
+    mcar' (Mlst (h:_)) = return h
+    mcar' (Mstr (h:_)) = return $ Mstr [h]
+    mcar' _            = errg "invalid type to car, must be a list or string"
 
 mcdr :: [Mexpr] -> Mres
-mcdr exprs =
-  case exprs of
-    [ex] -> eval ex >>= f
-    _    -> erra "cdr"
+mcdr a =
+  case a of
+    [l] -> eval l >>= mcdr'
+    _   -> erra "cdr"
   where
-    f (Mlst (_:xs)) = return $ Mlst xs
-    f (Mstr (_:xs)) = return $ Mstr xs
-    f _             = errg "invalid type to cdr, must be a list or string"
+    mcdr' (Mlst (_:[])) = return Mnil
+    mcdr' (Mlst (_:tl)) = return $ Mlst tl
+    mcdr' (Mstr (_:[])) = return Mnil
+    mcdr' (Mstr (_:tl)) = return $ Mstr tl
+    mcdr' _             = errg "invalid type to cdr, must be a list or string"
 
+-- eval will act as do
 meval :: [Mexpr] -> Mres
 meval [] = erra "eval"
-meval xs = mapM eval xs >>= return . last
+meval es = mapM eval es >>= return . last
 
 mapply :: [Mexpr] -> Mres
-mapply [f@(Mlam _ _), Mlst a] = eval $ Mlst (f:a)
-mapply [f@(Mlam _ _), a]      = eval $ Mlst (f:[a])
-mapply _                      = erra "apply"
+mapply [fn@(Mlam _ _), Mlst a] = eval $ Mlst (fn:a)
+mapply [fn@(Mlam _ _), a]      = eval $ Mlst (fn:[a])
+mapply _                       = erra "apply"
+
+mcons :: [Mexpr] -> Mres
+mcons [h, tl] = eval h >>= (\rh -> eval tl >>= (\rtl -> return $ mcons' rh rtl))
+  where
+    mcons' rh' Mnil        = Mlst $ [rh']
+    mcons' rh' (Mlst rtl') = Mlst $ rh':rtl'
+    mcons' rh' rtl'        = Mlst $ rh':[rtl']
+mcons _ = erra "cons"
 
 bind :: (String, Mexpr) -> Mres
 bind (str, expr) = S.modify (M.insert str expr) >> return expr
