@@ -29,8 +29,8 @@ instance Eq Mexpr where
   Mnil      == Mnil      = True
   (Msym x)  == (Msym y)  = x == y
   (Mstr x)  == (Mstr y)  = x == y
-  (Mlst xs) == (Mlst ys) = foldl (\a (x, y) -> a && x == y) True (zip xs ys)
-  _         == _        = False
+  (Mlst xs) == (Mlst ys) = length xs == length ys && foldl (\a (x, y) -> a && x == y) True (zip xs ys)
+  _         == _         = False
 
 instance Show Mexpr where
   show expr =
