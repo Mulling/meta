@@ -9,13 +9,13 @@ import qualified Control.Monad.Except as E
 -- simple test """FRAMEWORK"""
 
 main :: IO ()
-main = mapM_ (\(e, a) -> E.runExceptT (S.evalStateT (R.read e >>= eval >>= pure . show) initCtx) >>= putStrLn . res e a) tests
+main = mapM_ (\(e, a) -> E.runExceptT (S.evalStateT (R.read e >>= eval >>= pure . show) initCtx) >>= putStrLn . (("Running test " <> e <> "\n") <>) . res e a) tests
   where
     res e' a' (Right r) =
       if r == a'
-        then " :: OK  " <> e'
-        else " :: ERR expected " <> a' <> " got " <> r
-    res _ _ (Left er) = " :: ERR evaluation failed with: " <> er
+        then " OK  " <> e'
+        else " ERR " <> a' <> " got " <> r
+    res _ _ (Left er) = " ERR evaluation failed with: " <> er
 
 tests :: [(String, String)]
 tests =

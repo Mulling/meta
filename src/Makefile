@@ -1,19 +1,20 @@
 GHCFLAGS := -Wall
 GHCTARGET := Main
 GHCOUT := meta
+GHCOUTDIR := ../dist/
 
 all:
-	ghc --make $(GHCTARGET) -o $(GHCOUT) -outputdir ../dist/ $(GHCFLAGS)
+	ghc --make $(GHCTARGET) -o $(GHCOUT) -outputdir $(GHCOUTDIR) $(GHCFLAGS)
 
-.PHONY: release clean runtest
+.PHONY: release clean runtest test
 
 release: GHCFLAGS += -O3 
 release: all
 
-runtest: GHCTARGET := Test
-runtest: GHCOUT := test
-runtest: all
-	@echo " :: Running Tests"
+test: GHCTARGET := Test
+test: GHCOUT := test
+test: GHCOUTDIR := ../test/
+test: all
 	@./test
 
 profile: GHCFLAGS += -O3 -prof -fprof-auto -rtsopts
@@ -25,3 +26,4 @@ clean:
 	rm -f test
 	rm -f meta
 	rm -f ../dist/*
+	rm -f ../test/*
