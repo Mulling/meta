@@ -5,13 +5,13 @@ GHCOUT := meta
 all:
 	ghc --make $(GHCTARGET) -o $(GHCOUT) -outputdir ../dist/ $(GHCFLAGS)
 
-.PHONY: release clean
+.PHONY: release clean runtest
 
 release: GHCFLAGS += -O3 
 release: all
 
-runtest: GHCTARGET = Test
-runtest: GHCOUT = test
+runtest: GHCTARGET := Test
+runtest: GHCOUT := test
 runtest: all
 	@echo " :: Running Tests"
 	@./test

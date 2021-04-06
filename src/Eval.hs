@@ -141,7 +141,7 @@ mlambda _ = errg "lambda requires a list of arguments"
 
 meq :: [Mexpr] -> Mres
 meq as@[_, _] = mapM eval as >>= \ras -> return $ if head ras == last ras then Mnum 1 else Mnil
-meq _         = erra "eq"
+meq _         = erra "eq?"
 
 mlist :: [Mexpr] -> Mres
 mlist a =

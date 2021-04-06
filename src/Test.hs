@@ -37,4 +37,7 @@ tests =
   ,("(car \"hi\")", "h")
   ,("(cdr \"hi\")", "i")
   ,("(cdr (cdr \"hi\"))", "nil")
+  ,("(eq? (quote (1)) (cons 1 nil))", "1")
+  ,("(eq? (quote (1 2 3)) (cons 1 2))", "nil")
+  ,("(eq? (cons 1 2) (quote (1 2)))", "1")
   ]
