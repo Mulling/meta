@@ -2,6 +2,8 @@
 
 ## About:
 
+This isn't fully done yet, see: [TODO](TODO).
+
 `meta` is a toy LISP interpreter. The goal for the language is to combine features from Lisp 1 and Lisp 2
 and to allow runtime reader macros. This project also includes a small
 parser combinator 'library' written as an applicative parser.
